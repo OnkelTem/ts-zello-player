@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "pino": "^6.11.2",
-    "pino-pretty": "^4.7.0"
+    "pino-pretty": "^4.7.0",
+    "ts-zello": "file:ts-zello-0.0.2.tgz"
   }
 }
