@@ -5,8 +5,6 @@ import pino from 'pino';
 const CREDENTIALS_PATH = 'credentials.json';
 const ZELLO_SERVER = 'wss://zello.io/ws';
 
-interface Asd {}
-
 const raw = readFileSync(CREDENTIALS_PATH, 'utf8');
 export const cred: CommandLogonRequest = JSON.parse(raw);
 
