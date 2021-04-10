@@ -1,10 +1,11 @@
 {
   "name": "ts-zello-player",
   "version": "0.0.1",
-  "description": "Audio player for Zello",
+  "description": "Command line audio player for Zello",
   "scripts": {
     "build": "tsc",
-    "lint": "eslint '**/*.{js,ts,tsx}'"
+    "lint": "eslint '**/*.{js,ts,tsx}'",
+    "release": "standard-version"
   },
   "bin": "bin/ts-zello-player",
   "keywords": [
@@ -35,11 +36,12 @@
     "husky": "^6.0.0",
     "prettier": "^2.2.1",
     "rimraf": "^3.0.2",
+    "standard-version": "^9.2.0",
     "typescript": "4.1.5"
   },
   "dependencies": {
     "pino": "^6.11.2",
     "pino-pretty": "^4.7.0",
-    "ts-zello": "file:ts-zello-0.0.2.tgz"
+    "ts-zello": "^0.0.2"
   }
 }
