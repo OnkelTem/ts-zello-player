@@ -2,4 +2,4 @@
 if (process.env.LOGGER_PRETTY == null) {
   process.env.LOGGER_PRETTY = 1
 }
-require('../index.js')
+require('../dist/index.js')
