@@ -1,128 +1,174 @@
-import zello, {
-  Zello,
-  DEFAULT_ZELLO_OPTIONS,
-  getAudioFileStream,
-  getAutoDecodeStream,
-  FileStreamOptions,
-} from 'ts-zello';
-import { existsSync } from 'fs';
-import ytdl from 'ytdl-core';
-import pino from 'pino';
-import { Readable } from 'stream';
-import argv from './cli';
-import { basename } from 'path';
-import NodeID3 from 'node-id3';
+import { samplingRates, frameSizes, CommandLogonRequest, LoggerLevel, loggerLevels } from 'ts-zello';
+import yargs from 'yargs';
+import findUp from 'find-up';
+import { hideBin } from 'yargs/helpers';
+import { existsSync, readFileSync } from 'fs';
+import { main } from './main';
 
-const ZELLO_SERVER = 'wss://zello.io/ws';
+const configPath = findUp.sync(['.ts-zello-player', '.ts-zello-player.json']);
+const config = configPath != null ? JSON.parse(readFileSync(configPath, 'utf8')) : {};
 
-const pinoLogger = pino({ ...DEFAULT_ZELLO_OPTIONS.logger, level: argv.verbose });
+const options = {
+  bitrate: {
+    alias: 'b',
+    default: 48,
+    description: 'Bitrate in Kbps',
+    number: true,
+    min: 4,
+    max: 96,
+  },
+  volume: {
+    alias: 'l',
+    description: 'Volume factor',
+    number: true,
+    min: 0.01,
+    max: 2,
+  },
+  rate: {
+    alias: 'r',
+    default: 48000,
+    description: '(re)Sampling rate',
+    choices: samplingRates,
+  },
+  tempo: {
+    alias: 't',
+    description: 'Tempo factor',
+    number: true,
+    min: 0.5,
+    max: 2,
+  },
+  frame: {
+    alias: 'f',
+    default: 20,
+    description: 'Frame size',
+    choices: frameSizes,
+  },
+  credentials: {
+    default: 'credentials.json',
+    description: 'Credentials file path',
+    normalize: true,
+  },
+  channel: {
+    alias: 'c',
+    description: 'Zello channel to connect to',
+    type: 'string',
+  },
+  preview: {
+    alias: 'p',
+    default: false,
+    description: 'Show recording image preview',
+    type: 'boolean',
+  },
+  info: {
+    alias: 'i',
+    default: false,
+    description: 'Show recording text information',
+    type: 'boolean',
+  },
+  normalize: {
+    default: false,
+    description: 'Normalize sound with FFmpeg "loudnorm" filter',
+    type: 'boolean',
+  },
+  compress: {
+    default: false,
+    description: 'Compress sound with FFmpeg "acompressor" filter',
+    type: 'boolean',
+  },
+} as const;
+type OptionName = keyof typeof options;
 
-// @see: https://stackoverflow.com/a/3726073/1223483
-const youTubeLinkRegEx = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/;
-
-const fileStreamOptions: FileStreamOptions = {
-  samplingRate: argv.rate,
-  volumeFactor: argv.volume,
-  tempoFactor: argv.tempo,
-  startAt: argv.start,
-};
-
-function makeInfoLineFromTags({ artist, album, year, trackNumber, title }: NodeID3.Tags): string {
-  const _ = '\u00A0';
-  return [
-    artist ? `${artist}` : null,
-    album ? `💿${_}${album} ${year ? `${_}(${year})` : ''}` : null,
-    trackNumber || title ? `🎵${_}${trackNumber ? `${trackNumber} ` : ''}${title ? `- ${title}` : ''}` : null,
-  ]
-    .filter((item) => item != null)
-    .join('\n');
-}
-
-function makeInfoLineFromYouTubeInfo({
-  videoDetails: { title, dislikes, likes, ownerChannelName, uploadDate, viewCount },
-}: ytdl.videoInfo): string {
-  const _ = '\u00A0';
-  let viewsFmt: string = viewCount;
-  if (viewCount.match(/^\d+$/)) {
-    viewsFmt = parseInt(viewCount).toLocaleString();
-  }
-  const likesFmt = (likes ?? 0).toLocaleString();
-  const dislikesFmt = (dislikes ?? 0).toLocaleString();
-  return [
-    title,
-    `👁${_}${viewsFmt}${_}${_}👍${_}${likesFmt}${_}${_}👎${_}${dislikesFmt}`,
-    `ⓘ Channel: ${_}${ownerChannelName}${_}${_}⬆${_}${uploadDate}`,
-  ]
-    .filter((item) => item != null)
-    .join('\n');
-}
-
-let stream: Readable | undefined = undefined;
-let z: Zello;
-
-const cred = argv.credentials!;
-
-// Override channel from the cli
-if (argv.channel != null) {
-  cred.channel = argv.channel;
-}
-
-async function main() {
-  let targetInfo: string = '';
-
-  const target = argv.target!;
-
-  if (target.match(youTubeLinkRegEx)) {
-    // YouTube Link
-    const videoInfo = await ytdl.getBasicInfo(target);
-    targetInfo = makeInfoLineFromYouTubeInfo(videoInfo);
-    const audio = ytdl(target, { quality: 'highestaudio' });
-    stream = getAutoDecodeStream(audio, pinoLogger, fileStreamOptions);
-  } else {
-    // File
-    if (!existsSync(target)) {
-      console.error(`File not found: "${target}"`);
-      process.exit(2);
+function checkOptionRange(optionName: OptionName, value: number) {
+  const option = options[optionName];
+  if ('min' in option && 'max' in option) {
+    if (value != null && (value > option.max || value < option.min)) {
+      throw new Error(`${option.description} (${optionName}) must be between ${option.min} and ${option.max}`);
     }
-    const tags = NodeID3.read(target);
-    targetInfo = makeInfoLineFromTags(tags) || '🎵\u00A0' + basename(target);
-    stream = getAudioFileStream(target, pinoLogger, fileStreamOptions);
-  }
-
-  if (stream == null) {
-    console.error("Stream couldn't initialize");
-    process.exit(3);
-  }
-
-  z = await zello(ZELLO_SERVER, { logger: pinoLogger, name: 'ts-zello-player' });
-  try {
-    await z.ctl.run(function* ({ macros, commands }) {
-      yield macros.login(cred);
-      yield commands.sendTextMessage({ text: targetInfo });
-      yield macros.sendAudio(stream!, {
-        transcode: { samplingRate: argv.rate, frameSize: argv.frame, bitrateKbps: argv.bitrate, channels: 1 },
-      });
-    });
-  } catch (err) {
-    console.log(err);
-  }
-  await z.ctl.close();
-}
-
-async function shutdown() {
-  if (z && z.ctl.status() === 'OPEN') {
-    console.warn('Closing...');
-    await stream!.destroy();
-    await z.ctl.close();
   }
 }
 
-process.on('SIGINT', async function () {
-  console.warn('Received SIGINT: Stopped by user');
-  await shutdown();
-  process.exit();
-});
+yargs(hideBin(process.argv))
+  .options(options)
+  .config(config)
+  .demandCommand(1)
+  .command(
+    '$0 <target> [start]',
+    'the default command',
+    (yargs) =>
+      yargs
+        .positional('target', {
+          describe: 'A target to play, either file path or a YouTube link',
+          type: 'string',
+        })
+        .positional('start', {
+          description: 'Start playback at',
+          type: 'string',
+        })
+        .check((argv) => {
+          checkOptionRange('bitrate', argv.bitrate);
+          if (argv.volume != null) {
+            checkOptionRange('volume', argv.volume);
+          }
+          if (argv.tempo != null) {
+            checkOptionRange('tempo', argv.tempo);
+          }
+          return true;
+        })
+        .fail(function (msg, err, yargs) {
+          console.log(yargs.help());
+          console.error('\n\x1b[31m%s\x1b[0m', msg);
+          process.exit(1);
+        })
+        .usage('Usage: $0 [options] <file> [start]')
+        .usage('Usage: $0 [options] <youtube link> [start]')
+        .example('$0 file.mp3', 'play file.mp3')
+        .example('$0 https://www.youtube.com/watch?v=0hLnMDJ-gV4', 'play audio from the YouTube video')
+        .count('verbose')
+        .alias('v', 'verbose')
+        .default('verbose', 0)
+        .coerce('credentials', function (arg): CommandLogonRequest {
+          if (!existsSync(arg)) {
+            throw new Error(`Credentials file not found: ${arg}`);
+          }
+          const raw = readFileSync(arg, 'utf8');
+          return JSON.parse(raw);
+        })
+        .coerce('verbose', function (arg) {
+          return getLoggerLevel(arg);
+        }),
+    async function (argv) {
+      if (argv.credentials != null && argv.target != null) {
+        await main({
+          bitrateKbps: argv.bitrate,
+          volumeFactor: argv.volume,
+          samplingRate: argv.rate,
+          tempoFactor: argv.tempo,
+          frameSize: argv.frame,
+          credentials: argv.credentials,
+          channel: argv.channel,
+          target: argv.target,
+          startAt: argv.start,
+          logLevel: argv.verbose!,
+          normalizer: argv.normalize,
+          compressor: argv.compress,
+          details: {
+            text: argv.info,
+            image: argv.preview,
+          },
+        });
+        process.exit(0);
+      }
+    },
+  )
+  .help('h')
+  .alias('h', 'help').argv;
 
-(async () => {
-  await main();
-})();
+function getLoggerLevel(count: number): LoggerLevel {
+  // Zero amount of `-v` should result to 'info' log level, which corresponds to index = 3
+  const index = count + 3;
+  if (index > loggerLevels.length - 1) {
+    return loggerLevels[loggerLevels.length - 1];
+  } else {
+    return loggerLevels[index];
+  }
+}

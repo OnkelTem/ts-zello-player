@@ -9,11 +9,23 @@ There are things to do first, see the [TODO](#todo) section below.
 
 ## Installation
 
+### Linux
+
 Install the player:
 
 ```
 $ npm i -g ts-zello-player
 ```
+
+Install [FFmpeg](https://ffmpeg.org/):
+
+```
+$ apt-get install ffmpeg
+```
+
+### Other OSes
+
+Haven't tested or tried. Contributions are welcome.
 
 ## Configuration
 
