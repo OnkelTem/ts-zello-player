@@ -1,6 +1,6 @@
 {
   "name": "ts-zello-player",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Command line audio player for Zello",
   "scripts": {
     "build": "rimraf dist && tsc",
