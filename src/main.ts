@@ -270,7 +270,7 @@ async function makeYouTubePreview(videoInfo: ytdl.videoInfo): Promise<Buffer> {
   let imageData = await (await fetch(thumbnailUrl)).buffer();
   imageData = await sharp(imageData).resize({ width: 800, height: 450 }).toBuffer();
 
-  let svgPageData = fs.readFileSync('src/assets/drawing-opt.svg', 'utf8');
+  let svgPageData = fs.readFileSync(__dirname + '/../src/assets/drawing-opt.svg', 'utf8');
   svgPageData = svgPageData.replace('#videoTitle', title);
   svgPageData = svgPageData.replace('#channelName', ownerChannelName);
   svgPageData = svgPageData.replace('#viewsCount', viewsFmt);
@@ -279,7 +279,7 @@ async function makeYouTubePreview(videoInfo: ytdl.videoInfo): Promise<Buffer> {
   svgPageData = svgPageData.replace('#uploaded', uploadDate);
   const svgPageBuffer = Buffer.from(svgPageData);
 
-  let svgTimeLabelData = fs.readFileSync('src/assets/time-label-opt.svg', 'utf8');
+  let svgTimeLabelData = fs.readFileSync(__dirname + '/../src/assets/time-label-opt.svg', 'utf8');
   svgTimeLabelData = svgTimeLabelData.replace('#time', lengthFmt);
   const svgTimeLabelBuffer = Buffer.from(svgTimeLabelData);
 
