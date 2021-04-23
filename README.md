@@ -84,14 +84,20 @@ Positionals:
 
 Options:
       --version      Show version number                               [boolean]
-  -b, --bitrate      Bitrate in Kbps                      [number] [default: 32]
-  -l, --volume       Volume factor                       [number] [default: 0.3]
+  -b, --bitrate      Bitrate in Kbps                      [number] [default: 48]
+  -l, --volume       Volume factor                                      [number]
   -r, --rate         (re)Sampling rate
                     [choices: 8000, 12000, 16000, 24000, 48000] [default: 48000]
-  -t, --tempo        Tempo factor                                   [default: 1]
+  -t, --tempo        Tempo factor                                       [number]
   -f, --frame        Frame size  [choices: 2.5, 5, 10, 20, 40, 60] [default: 20]
       --credentials  Credentials file path[string] [default: "credentials.json"]
   -c, --channel      Zello channel to connect to                        [string]
+  -p, --preview      Show recording image preview     [boolean] [default: false]
+  -i, --info         Show recording text information  [boolean] [default: false]
+      --normalize    Normalize sound with FFmpeg "loudnorm" filter
+                                                      [boolean] [default: false]
+      --compress     Compress sound with FFmpeg "acompressor" filter
+                                                      [boolean] [default: false]
   -h, --help         Show help                                         [boolean]
 
 Examples:
@@ -103,7 +109,6 @@ Examples:
 
 ## TODO
 
-- [ ] Finish this README
-- [ ] Record a short helping screencast 
-- [ ] Fetch images from ID3 tags and previews from YouTube videos and post them optionally during playback
-- [ ] Add _retry strategy_ selection to the command line options
+- Finish this README
+- Record a short helping screencast 
+- Add _retry strategy_ selection to the command line options
