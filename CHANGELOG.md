@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.6](https://github.com/OnkelTem/ts-zello-player/compare/v0.0.5...v0.0.6) (2021-04-23)
+
+
+### Bug Fixes
+
+* **dev:** added proper paths to assets ([3a22b6a](https://github.com/OnkelTem/ts-zello-player/commit/3a22b6a761390fb5ee64a68dd5c362d67170c142))
+
 ### [0.0.5](https://github.com/OnkelTem/ts-zello-player/compare/v0.0.4...v0.0.5) (2021-04-23)
 
 
