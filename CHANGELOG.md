@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.5](https://github.com/OnkelTem/ts-zello-player/compare/v0.0.4...v0.0.5) (2021-04-23)
+
+
+### Bug Fixes
+
+* **dev:** moved SVG imagery into 'src' directory, updated README ([441a536](https://github.com/OnkelTem/ts-zello-player/commit/441a536dc7293c7b7dccfe8f304eeadc51f9aa85))
+
 ### [0.0.4](https://github.com/OnkelTem/ts-zello-player/compare/v0.0.3...v0.0.4) (2021-04-23)
 
 
