@@ -3,7 +3,7 @@
   "version": "0.0.4",
   "description": "Command line audio player for Zello",
   "scripts": {
-    "build": "rimraf dist && tsc",
+    "build": "rimraf js && tsc",
     "lint": "eslint '**/*.{js,ts,tsx}'",
     "release": "standard-version"
   },

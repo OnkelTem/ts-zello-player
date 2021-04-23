@@ -23,6 +23,12 @@ Install [FFmpeg](https://ffmpeg.org/):
 $ apt-get install ffmpeg
 ```
 
+Install `build-essential` package:
+
+```
+$ apt-get install build-essential
+```
+
 ### Other OSes
 
 Haven't tested or tried. Contributions are welcome.
