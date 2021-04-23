@@ -9,7 +9,7 @@ There are things to do first, see the [TODO](#todo) section below.
 
 ## Installation
 
-### Linux
+### Linux (Ubuntu)
 
 Install the player:
 
@@ -20,13 +20,19 @@ $ npm i -g ts-zello-player
 Install [FFmpeg](https://ffmpeg.org/):
 
 ```
-$ apt-get install ffmpeg
+$ sudo apt-get install ffmpeg
 ```
 
 Install `build-essential` package:
 
 ```
-$ apt-get install build-essential
+$ sudo apt-get install build-essential
+```
+
+Install `Roboto` font:
+
+```
+$ sudo apt-get install fonts-roboto
 ```
 
 ### Other OSes
